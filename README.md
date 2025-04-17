@@ -43,4 +43,4 @@ Se crea una tabla en BigQuery para almacenar las predicciones diarias del modelo
 
 1. **Clona el repositorio**:
    ```bash
-   git clone https://github.com/BootcampXperience/DS_BigQuery_Looker.git
+   git clone https://github.com/bruxly/predice-cliente-compra-si-o-no.git
