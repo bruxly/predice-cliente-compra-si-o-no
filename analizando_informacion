@@ -1,0 +1,168 @@
+1.¿Cual es el porcentaje de conversión por operating_system, device_category y browser?
+¿Qué tan efectivo es cada sistema operativo, tipo de dispositivo y navegador para generar conversaciones?
+
+sql_query ="""
+  SELECT
+      IFNULL(device.operatingSystem, 'Unknown') AS operatingsystem,
+      device.deviceCategory AS device_category,
+      IFNULL(device.browser,'Unknown') AS browser,
+      COUNT(*) AS total_sessiones,
+      SUM(IF(totals.transactions IS NULL, 0,1)) AS total_transactions,
+      ROUND((SUM(IF(totals.transactions IS NULL, 0,1)) / COUNT(*)) * 100,2) AS conversion_rate_porcentaje
+  FROM `bigquery-public-data.google_analytics_sample.ga_sessions_*`
+  WHERE _TABLE_SUFFIX BETWEEN '20161101' AND '20161131'
+   GROUP BY 1, 2, 3
+  ORDER BY 6 DESC
+"""
+
+
+sql_query_1_respuesta = client.query(sql_query).to_dataframe()
+
+#convierto el dataframe a HTML
+tabla_html = sql_query_1_respuesta.to_html(index=False)
+
+#centrar el titulo
+html_completo = f"""
+
+  <div style = "text-align:center;">
+    <h2 style = "margin-bottom: 10px;">📊Resumen de Conversiones por Dispositivos</h2>
+   <div style = "display: inline-block;">{tabla_html}</div>
+   </div>
+"""
+
+display(HTML(html_completo))
+
+from IPython.display import display, HTML
+
+sql_query ="""
+  SELECT
+      IFNULL(device.operatingSystem, 'Unknown') AS operatingsystem,
+      device.deviceCategory AS device_category,
+      IFNULL(device.browser,'Unknown') AS browser,
+      COUNT(*) AS total_sessiones,
+      SUM(IF(totals.transactions IS NULL, 0,1)) AS total_transactions,
+      ROUND((SUM(IF(totals.transactions IS NULL, 0,1)) / COUNT(*)) * 100,2) AS conversion_rate_porcentaje
+  FROM `bigquery-public-data.google_analytics_sample.ga_sessions_*`
+  WHERE _TABLE_SUFFIX BETWEEN '20161101' AND '20161131'
+  GROUP BY 1, 2, 3
+  ORDER BY conversion_rate_porcentaje DESC LIMIT 5
+"""
+
+sql_query_1_respuesta = client.query(sql_query).to_dataframe()
+tabla_html_1 = sql_query_1_respuesta.to_html(index=False)
+
+# HTML completo con tabla y análisis centrado
+html_completo_1 = f"""
+<div style="display: flex; justify-content: center; margin-top: 20px;">
+  <div style="width: 900px;">
+
+    <h2 style="text-align: center; margin-bottom: 20px;">📊 Top 5 de Conversiones por Dispositivos</h2>
+
+    <div style="margin-bottom: 30px;">
+      {tabla_html_1}
+    </div>
+
+      <div style = " margin-top:50px; font-size:20px;">
+
+      <p style="text-align: center;"><strong>🧠 Análisis:</strong></p>
+      <p>Las mayores tasas de conversión se concentran en usuarios de <strong>escritorio</strong> que utilizan navegadores como <strong>Chrome</strong> en<br> sistemas operativos como <strong>Chrome OS (3.47%)</strong> y <strong>Macintosh (3.38%)</strong>.</p>
+      <p>Algunos nichos curiosos también muestran buen desempeño, como <strong>Windows Mobile con Internet Explorer (2.68%)</strong> y <strong><br>Android tablet con Amazon Silk (2.27%)</strong>.</p>
+      <p>En resumen, las combinaciones que maximizan la conversión están asociadas a entornos consolidados, principalmente<br> en desktop y navegadores conocidos.</p>
+    </div>
+
+  </div>
+</div>
+"""
+
+display(HTML(html_completo_1))
+/*
+Las mayores tasas de conversión se concentran en usuarios de escritorio que utilizan navegadores como Chrome en
+sistemas operativos como Chrome OS (3.47%) y Macintosh (3.38%).
+
+Algunos nichos curiosos también muestran buen desempeño, como Windows Mobile con Internet Explorer (2.68%) y
+Android tablet con Amazon Silk (2.27%).
+
+En resumen, las combinaciones que maximizan la conversión están asociadas a entornos consolidados, principalmente
+en desktop y navegadores conocidos.
+
+
+2.¿Cual es el porcentaje de visitantes que hizo una compra en el sitio web?
+
+sql_query = """
+
+  SELECT
+    visitors.total_visitors AS Visitantes,
+    purchasers.total_purchasers AS Compradores,
+    ROUND((purchasers.total_purchasers / visitors.total_visitors) * 100,2) AS Porcentaje_compradores
+  FROM
+    (
+    SELECT
+      COUNT(DISTINCT fullVisitorId) AS total_visitors
+      FROM `bigquery-public-data.google_analytics_sample.ga_sessions_*`
+    WHERE _TABLE_SUFFIX BETWEEN '20170101' AND '20170130'
+
+    )AS visitors,
+
+
+   (
+    SELECT
+      COUNT(DISTINCT fullVisitorId) AS  total_purchasers,
+      FROM `bigquery-public-data.google_analytics_sample.ga_sessions_*`
+    WHERE _TABLE_SUFFIX BETWEEN '20170101' AND '20170130'
+    AND totals.transactions IS NOT NULL
+    AND IFNULL(totals.transactions,0)> 0
+
+    )AS purchasers;
+
+"""
+
+sql_query = client.query(sql_query).to_dataframe()
+
+#convierto el dataframe a html
+html_respuesta_2 = sql_query.to_html(index=False)
+
+
+#Analisis de la informacoón
+analisis = """
+
+  <div style = "text-align:center; margin-top:50px; font-size:18px;">
+  <p><strong>🧾Análisis de la tabla:</strong></p>
+  <p>Durante el mes de enero del año 2017, se recibió un total de <strong>51.304 visitantantes</strong>. De los cuales <strong>626 realizaron compras</strong>.</p>
+  <p>Esto representa una tasa de conversión del <strong>1.22%</strong>,aproximadamente 1 de cada 82 visitantes realizaron una compra.</p>
+
+
+"""
+
+
+
+html_respuesta_2_titulo = f"""
+
+  <div style = "text-align:center;">
+    <h2 style = "margin-bottom:20px;">📊.¿Cual es el porcentaje de visitantes que hizo una compra en el sitio web?</h2>
+    <h2 style = "margin-bottom:10px;">Fecha de datos consultados mes de enero año 2017</h2>
+    <div style = "display: inline-block;">{html_respuesta_2}</div>{analisis}
+  </div>
+
+"""
+
+display(HTML(html_respuesta_2_titulo))
+/*
+
+🧾Análisis de la tabla:
+
+Durante el mes de enero del año 2017, se recibió un total de 51.304 visitantantes. De los cuales 626 realizaron compras.
+
+Esto representa una tasa de conversión del 1.22%,aproximadamente 1 de cada 82 visitantes realizaron una compra.
+
+
+*/
+
+
+
+
+
+
+
+*/
+
+
